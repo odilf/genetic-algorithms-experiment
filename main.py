@@ -38,14 +38,25 @@ def _():
 
 @app.cell
 def _():
-    diabetes_df = pl.read_csv("./data/Diabetes.csv")
+    try:
+        diabetes_df = pl.read_csv("./data/Diabetes.csv")
+    except:
+        diabetes_df = pl.read_csv(
+            "https://raw.githubusercontent.com/odilf/genetic-algorithms-experiment/refs/heads/main/data/Diabetes.csv"
+        )
+
     mo.show_code(diabetes_df)
     return (diabetes_df,)
 
 
 @app.cell
 def _():
-    california_df = pl.read_csv("./data/California.csv")
+    try:
+        california_df = pl.read_csv("./data/California.csv")
+    except:
+        california_df = pl.read_csv(
+            "https://raw.githubusercontent.com/odilf/genetic-algorithms-experiment/refs/heads/main/data/California.csv"
+        )
     mo.show_code(california_df)
     return (california_df,)
 
@@ -189,6 +200,7 @@ def _(Attribute, Individual, cross_attr, ops):
 
         return generate_attr_impl(limit, grow_prob)
 
+
     mo.show_code()
     return (generate_attr,)
 
@@ -208,18 +220,23 @@ def _(Individual, diabetes, generate_attr):
         initial_individual: Individual, pop_size, individual_size
     ) -> list[Individual]:
         return [
-            Individual(
-                [
-                    generate_attr(initial_individual)
-                    for _ in range(individual_size)
-                ],
-                target=initial_individual.target,
-            )
-            for _ in range(pop_size)
+            *[
+                Individual(
+                    [
+                        generate_attr(initial_individual)
+                        for _ in range(individual_size)
+                    ],
+                    target=initial_individual.target,
+                )
+                for _ in range(pop_size)
+            ],
+            initial_individual,
         ]
 
 
-    mo.show_code(generate_initial_population(diabetes, pop_size=10, individual_size=3))
+    mo.show_code(
+        generate_initial_population(diabetes, pop_size=10, individual_size=3)
+    )
     return (generate_initial_population,)
 
 
@@ -356,6 +373,7 @@ def _():
     from sklearn.model_selection import train_test_split, KFold
     from sklearn.linear_model import LinearRegression
 
+
     def error(Y, y):
         return np.mean(np.abs(Y - y), axis=0)
 
@@ -385,6 +403,7 @@ def _():
         fitness = np.mean(errors)
         individual.fitness = fitness
         return fitness
+
 
     def regress(X, y):
         model = LinearRegression()
@@ -471,6 +490,8 @@ def _(
 def _():
     mo.md(r"""
     # Evaluación y conclusiones
+
+    En las figuras a continuación se ve como mejora el fitness a lo largo de las iteraciones. En mi opinión, no está nada mal la mejora.
     """)
     return
 
@@ -504,7 +525,7 @@ def slice_gen_as_array(gen, title=None):
 @app.cell
 def _(diabetes_df, find_best_attributes, popsize_slider):
     results_diabetes = slice_gen_as_array(
-        find_best_attributes(diabetes_df, pop_size=popsize_slider.value),
+        find_best_attributes(diabetes_df, pop_size=popsize_slider.value, individual_size=30),
         "Diabetes",
     )
     return (results_diabetes,)
@@ -527,7 +548,7 @@ def _(fitness):
         f_end = fitness(individuals[-1])
         improvement = (f_start - f_end) / f_start
 
-        plt.figure(dpi=200, figsize=(12, 6))
+        plt.figure(dpi=200, figsize=(6, 3))
         plt.title(f"{title} (mejora={improvement * 100:.3f}%)")
         plt.plot([fitness(ind) for ind in individuals])
         plt.ylabel("Fitness")
@@ -549,8 +570,12 @@ def _(fitness):
 
 @app.cell(hide_code=True)
 def _():
-    generations_slider = mo.ui.slider(10, 500, full_width=True, show_value=True, debounce=True, value=30)
-    popsize_slider = mo.ui.slider(10, 500, full_width=True, show_value=True, debounce=True, value=150)
+    generations_slider = mo.ui.slider(
+        10, 500, full_width=True, show_value=True, debounce=True, value=20
+    )
+    popsize_slider = mo.ui.slider(
+        10, 500, full_width=True, show_value=True, debounce=True, value=30
+    )
     mo.vstack(
         [
             mo.md("Número de generaciones"),
@@ -599,7 +624,7 @@ def _(diabetes_df, find_best_attributes, fitness):
     def _():
         number_of_attributes = [1, 2, 3, 5, 10, 15, 20, 30]
 
-        plt.figure(dpi=200, figsize=(12, 6))
+        plt.figure(dpi=200, figsize=(6, 3))
         for n in number_of_attributes:
             results = find_best_attributes(diabetes_df, individual_size=n)
             individuals = [
@@ -613,7 +638,10 @@ def _(diabetes_df, find_best_attributes, fitness):
             f_end = fitness(individuals[-1])
             improvement = (f_start - f_end) / f_start
 
-            plt.plot([fitness(ind) for ind in individuals], label=f"{n=}, mejora={improvement*100:.2f}%")
+            plt.plot(
+                [fitness(ind) for ind in individuals],
+                label=f"{n=}, mejora={improvement * 100:.2f}%",
+            )
         plt.legend()
         return plt.gcf()
 
@@ -638,7 +666,7 @@ def _():
 def _(diabetes_df, find_best_attributes, fitness):
     population_sizes = [5, 10, 20, 50, 100]
 
-    plt.figure(dpi=200, figsize=(12, 6))
+    plt.figure(dpi=200, figsize=(6, 3))
     for pop_size in population_sizes:
         _results = find_best_attributes(diabetes_df, pop_size=pop_size)
         _individuals = [
@@ -652,7 +680,10 @@ def _(diabetes_df, find_best_attributes, fitness):
         f_end = fitness(_individuals[-1])
         improvement = (f_start - f_end) / f_start
 
-        plt.plot([fitness(ind) for ind in _individuals], label=f"{pop_size=}, mejora={improvement*100:.2f}%")
+        plt.plot(
+            [fitness(ind) for ind in _individuals],
+            label=f"{pop_size=}, mejora={improvement * 100:.2f}%",
+        )
     plt.legend()
     plt.gcf()
     return
@@ -664,7 +695,7 @@ def _(best_attrs):
     ## Los mejores atributos
 
     Y, al final, qué pinta tienen los mejores atributos? Pues, para el set de californa, son estos:
-    ™
+
     - {"\n- ".join([f"{x}" for x in best_attrs])}
     """)
     return

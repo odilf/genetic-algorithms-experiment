@@ -21,9 +21,6 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
-      - name: Copy datasets
-        run: cp -r data marimo-output/
-
       - name: Export notebook (interactive)
         run: uv run marimo export html-wasm main.py -o marimo-output --mode run
 

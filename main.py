@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.18.1"
-app = marimo.App(width="medium", layout_file="layouts/initial.slides.json")
+app = marimo.App(width="medium", layout_file="layouts/main.slides.json")
 
 with app.setup:
     import polars as pl
@@ -15,7 +15,11 @@ def _():
     mo.md(f"""
     # Introducción
 
-    He hecho la memoria integrada en el notebook que he utilizado para escribir el código. Creo que así será mas fácil de seguir. También esta disponible en https://github.com/odilf/genetic-algorithms-experiment.
+    He hecho la memoria integrada en el notebook que he utilizado para escribir el código. Creo que así será mas fácil de seguir. 
+
+    - Se puede acceder al notebook (interactivo!) aquí: https://odilf.github.io/genetic-algorithms-experiment/
+    - Si no funciona, hay una versión no interactiva aquí: https://odilf.github.io/genetic-algorithms-experiment/static.html
+    - El código fuente está disponible en: https://github.com/odilf/genetic-algorithms-experiment.
 
     {mo.outline(label="Índice")}
     """)
@@ -264,7 +268,7 @@ def _(Individual):
     return (cross,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## Mutaciones
@@ -503,7 +507,7 @@ def _(california_df, diabetes_df, find_best_attributes, popsize_slider):
         "Diabetes",
     )
     results_california = slice_gen_as_array(
-        find_best_attributes(california_df, pop_size=popsize_slider.value),
+        find_best_attributes(california_df, pop_size=20),
         "California",
     )
 
@@ -517,7 +521,7 @@ def _(fitness):
         individuals = results(generations)
         f_start = fitness(individuals[0])
         f_end = fitness(individuals[-1])
-        improvement = (f_start - f_end) / f_end
+        improvement = (f_start - f_end) / f_start
 
         plt.figure(dpi=200, figsize=(12, 6))
         plt.title(f"{title} (mejora={improvement * 100:.3f}%)")
@@ -541,8 +545,8 @@ def _(fitness):
 
 @app.cell(hide_code=True)
 def _():
-    generations_slider = mo.ui.slider(10, 500, full_width=True)
-    popsize_slider = mo.ui.slider(10, 500, full_width=True)
+    generations_slider = mo.ui.slider(10, 500, full_width=True, show_value=True, debounce=True, value=30)
+    popsize_slider = mo.ui.slider(10, 500, full_width=True, show_value=True, debounce=True, value=15)
     mo.vstack(
         [
             mo.md("Número de generaciones"),
@@ -565,19 +569,12 @@ def _(generations_slider, plot_results, results_diabetes):
 
 
 @app.cell
-def _():
-    run_california = mo.ui.run_button(label="Correr para California")
-    run_california
-    return (run_california,)
-
-
-@app.cell
-def _(generations_slider, plot_results, results_california, run_california):
+def _(plot_results, results_california):
     plot_results(
         results_california,
-        generations=generations_slider.value,
+        generations=15,
         title="California",
-    ) if run_california.value else None
+    )
     return
 
 
@@ -586,9 +583,9 @@ def _():
     mo.md(r"""
     ## Efecto del número de atributos (i.e., genes)
 
-    Vemos que cuantos más atributos, mejor es el modelo. Sin embargo, después de cierto punto parece que deja de ayudar tanto.
+    Esperaríamos que cuantos más atributos mejor el modelo porque además la regresión linear tiene libertad de ignorar atributos si son malos. Y en general vemos que en efecto mejora, pero no mucho.
 
-    A veces para $n=1$ el modelo rinde mejor que para $n=2$ y $n=3$, pero esto no es consistente y asumo que es sobre todo anecdótico. En general, esperamos que cuantos más atributos mejor el modelo porque además la regresión linear tiene libertad de ignorar atributos si son malos. Y en general vemos que en efecto mejora, pero no mucho.
+    A veces para $n=1$ el modelo rinde mejor que para $n=2$ y $n=3$, pero esto no es consistente y asumo que es sobre todo anecdótico. En general, si no tenemos suficientes atributos empeora el rendimiento porque la primera generación ya es muy mala. Se podría intentar resolver esto, pero no lo he hecho.
     """)
     return
 
@@ -610,7 +607,7 @@ def _(diabetes_df, find_best_attributes, fitness):
 
             f_start = fitness(individuals[0])
             f_end = fitness(individuals[-1])
-            improvement = (f_start - f_end) / f_end
+            improvement = (f_start - f_end) / f_start
 
             plt.plot([fitness(ind) for ind in individuals], label=f"{n=}, mejora={improvement*100:.2f}%")
         plt.legend()
@@ -649,7 +646,7 @@ def _(diabetes_df, find_best_attributes, fitness):
 
         f_start = fitness(_individuals[0])
         f_end = fitness(_individuals[-1])
-        improvement = (f_start - f_end) / f_end
+        improvement = (f_start - f_end) / f_start
 
         plt.plot([fitness(ind) for ind in _individuals], label=f"{pop_size=}, mejora={improvement*100:.2f}%")
     plt.legend()
@@ -678,7 +675,7 @@ def _(fitness, generations_slider, results_diabetes):
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    Y eso es todo, muchas gracias por escuchar `:)`
+    Y eso es todo, muchas gracias por leer.
     """)
     return
 

@@ -21,8 +21,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
-      # - name: Export notebook (interactive)
-      #   run: uv run marimo export html-wasm main.py -o marimo-output --mode run
+      - name: Export notebook (interactive)
+        run: uv run marimo export html-wasm main.py -o marimo-output --mode run
 
       - name: Export notebook (static)
         run: uv run marimo export html main.py -o marimo-output/static.html --no-include-code

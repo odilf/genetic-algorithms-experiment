@@ -475,44 +475,48 @@ def _():
     return
 
 
+@app.function
+# Movidas para que los plots sean reactivos
+def slice_gen_as_array(gen, title=None):
+    results = []
+
+    def index(i):
+        if i < 0:
+            return results[i]
+
+        r = range(len(results), i + 1)
+        # Show nice progress bar if there are enough generations
+        if i - len(results) >= 10:
+            r = mo.status.progress_bar(
+                r,
+                title=f"Generando attributos para {title}",
+                remove_on_exit=True,
+            )
+
+        for i in r:
+            results.append(next(gen))
+
+        return results[:i]
+
+    return index
+
+
 @app.cell
-def _(california_df, diabetes_df, find_best_attributes, popsize_slider):
-    # Movidas para que los plots sean reactivos
-    def slice_gen_as_array(gen, title=None):
-        results = []
-
-        def index(i):
-            if i < 0:
-                return results[i]
-
-            r = range(len(results), i + 1)
-            # Show nice progress bar if there are enough generations
-            if i - len(results) >= 10:
-                r = mo.status.progress_bar(
-                    r,
-                    title=f"Generando attributos para {title}",
-                    remove_on_exit=True,
-                )
-
-            for i in r:
-                results.append(next(gen))
-
-            return results[:i]
-
-        return index
-
-
+def _(diabetes_df, find_best_attributes, popsize_slider):
     results_diabetes = slice_gen_as_array(
         find_best_attributes(diabetes_df, pop_size=popsize_slider.value),
         "Diabetes",
     )
+    return (results_diabetes,)
+
+
+@app.cell
+def _(california_df, find_best_attributes):
     results_california = slice_gen_as_array(
         find_best_attributes(california_df, pop_size=20),
         "California",
     )
-
-    mo.show_code()
-    return results_california, results_diabetes
+    return (results_california,)
 
 
 @app.cell
@@ -546,7 +550,7 @@ def _(fitness):
 @app.cell(hide_code=True)
 def _():
     generations_slider = mo.ui.slider(10, 500, full_width=True, show_value=True, debounce=True, value=30)
-    popsize_slider = mo.ui.slider(10, 500, full_width=True, show_value=True, debounce=True, value=15)
+    popsize_slider = mo.ui.slider(10, 500, full_width=True, show_value=True, debounce=True, value=150)
     mo.vstack(
         [
             mo.md("Número de generaciones"),

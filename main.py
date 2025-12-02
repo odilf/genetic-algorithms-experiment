@@ -663,16 +663,16 @@ def _(best_attrs):
     mo.md(f"""
     ## Los mejores atributos
 
-    Y, al final, qué pinta tienen los mejores atributos? Pues, para el set de diabetes, son estos:
-
+    Y, al final, qué pinta tienen los mejores atributos? Pues, para el set de californa, son estos:
+    ™
     - {"\n- ".join([f"{x}" for x in best_attrs])}
     """)
     return
 
 
 @app.cell
-def _(fitness, generations_slider, results_diabetes):
-    best_attrs = min(results_diabetes(generations_slider.value), key=fitness).attrs
+def _(fitness, results_california):
+    best_attrs = min(results_california(15), key=fitness).attrs
     return (best_attrs,)
 
 

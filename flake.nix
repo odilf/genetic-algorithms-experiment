@@ -39,6 +39,9 @@
               pkgs.uv
               pkgs.ty
               pkgs.ruff
+
+              pkgs.typst
+              pkgs.tinymist
               # pkgs.jedi-language-server
               # pkgs.pylsp
             ];

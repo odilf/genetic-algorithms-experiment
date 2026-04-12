@@ -135,6 +135,7 @@ def _():
         ("+", lambda a, b: a + b),
         ("-", lambda a, b: a - b),
         ("*", lambda a, b: a * b),
+        # ("^", lambda a, b: a ** b),
         (
             "/",
             # Safe division
@@ -143,9 +144,9 @@ def _():
     ]
 
     logical_ops = [
-        # ("&", lambda a, b: a.astype(np.int32) & b.astype(np.int32)),
-        # ("|", lambda a, b: a.astype(np.int32) | b.astype(np.int32)),
-        # ("^", lambda a, b: a.astype(np.int32) ^ b.astype(np.int32)),
+    #     ("&", lambda a, b: (a.astype(np.int32) & b.astype(np.int32)).astype(np.float64)),
+    #     ("|", lambda a, b: (a.astype(np.int32) | b.astype(np.int32)).astype(np.float64)),
+    #     ("^", lambda a, b: (a.astype(np.int32) ^ b.astype(np.int32)).astype(np.float64)),
     ]
 
     ops = [*numeric_ops, *logical_ops]
@@ -453,7 +454,7 @@ def _(
         pop_size=10,
         reproduction=10,
         select_round_size=4,
-        mutation_rate=0.1,
+        mutation_rate=0.8,
     ) -> Iterator[Individual]:
         # Seleccionamos los attributos.
         initial_individual = as_individual(df)
@@ -534,7 +535,7 @@ def _(diabetes_df, find_best_attributes, popsize_slider):
 @app.cell
 def _(california_df, find_best_attributes):
     results_california = slice_gen_as_array(
-        find_best_attributes(california_df, pop_size=20),
+        find_best_attributes(california_df, pop_size=50),
         "California",
     )
     return (results_california,)
@@ -548,12 +549,15 @@ def _(fitness):
         f_end = fitness(individuals[-1])
         improvement = (f_start - f_end) / f_start
 
-        plt.figure(dpi=200, figsize=(6, 3))
+        plt.figure(dpi=200, figsize=(12, 6))
         plt.title(f"{title} (mejora={improvement * 100:.3f}%)")
         plt.plot([fitness(ind) for ind in individuals])
         plt.ylabel("Fitness")
         plt.xlabel("Generation")
         plt.grid(alpha=0.2)
+        fig = plt.gcf()
+        plt.savefig(f"./figures/{title}.svg")
+    
         return mo.vstack(
             [
                 mo.stat(
@@ -601,7 +605,7 @@ def _(generations_slider, plot_results, results_diabetes):
 def _(plot_results, results_california):
     plot_results(
         results_california,
-        generations=15,
+        generations=7,
         title="California",
     )
     return
@@ -624,7 +628,7 @@ def _(diabetes_df, find_best_attributes, fitness):
     def _():
         number_of_attributes = [1, 2, 3, 5, 10, 15, 20, 30]
 
-        plt.figure(dpi=200, figsize=(6, 3))
+        plt.figure(dpi=200, figsize=(12, 6))
         for n in number_of_attributes:
             results = find_best_attributes(diabetes_df, individual_size=n)
             individuals = [
@@ -643,6 +647,7 @@ def _(diabetes_df, find_best_attributes, fitness):
                 label=f"{n=}, mejora={improvement * 100:.2f}%",
             )
         plt.legend()
+        plt.savefig("./figures/attributes.svg")
         return plt.gcf()
 
 
@@ -666,7 +671,7 @@ def _():
 def _(diabetes_df, find_best_attributes, fitness):
     population_sizes = [5, 10, 20, 50, 100]
 
-    plt.figure(dpi=200, figsize=(6, 3))
+    plt.figure(dpi=200, figsize=(12, 6))
     for pop_size in population_sizes:
         _results = find_best_attributes(diabetes_df, pop_size=pop_size)
         _individuals = [
@@ -685,6 +690,7 @@ def _(diabetes_df, find_best_attributes, fitness):
             label=f"{pop_size=}, mejora={improvement * 100:.2f}%",
         )
     plt.legend()
+    plt.savefig("./figures/popsize.svg")
     plt.gcf()
     return
 
